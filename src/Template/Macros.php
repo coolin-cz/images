@@ -3,22 +3,30 @@
 namespace WebChemistry\Images\Template;
 
 use Latte;
+use Latte\CompileException;
+use Latte\Compiler\Nodes\Php\Scalar\StringNode;
+use Latte\Engine;
 
-class Macros extends Latte\Macros\MacroSet {
+class Macros extends Latte\Extension {
 
-	/**
-	 * @param Latte\Compiler $compiler
-	 */
-	public static function install(Latte\Compiler $compiler) {
-		$me = new static($compiler);
-
-		$me->addMacro('img', [$me, 'beginImg'], null, [$me, 'attrImg']);
+	public function getTags():array{
+		return ['img' => [$this, 'processImg']];
 	}
 
-	protected function skipWhitespaces(Latte\MacroTokens $tokenizer) {
-		while (($tokens = $tokenizer->currentToken()) && $tokens[2] === $tokenizer::T_WHITESPACE) {
-			$tokenizer->nextToken();
+	// {img path/to/img.jpg[, alias]}
+	public function processImg(Latte\Compiler\Tag $tag, Latte\Compiler\TemplateParser $parser):Latte\Compiler\Node{
+		if($tag->isNAttribute()){
+			throw new CompileException('Attribute n:img is not supported.', $tag->position);
 		}
+
+		$tag->outputMode = $tag::OutputRemoveIndentation;
+		$tag->expectArguments('asset');
+
+		$asset = $tag->parser->parseUnquotedStringOrExpression();
+		$tag->parser->stream->tryConsume(',');
+		$args = $tag->parser->parseArguments();
+
+		return new ImgNode($asset, $args);
 	}
 
 	/**
@@ -31,7 +39,7 @@ class Macros extends Latte\Macros\MacroSet {
 
 		while (($tokens = $tokenizer->currentToken()) && $tokens[0] !== ')') {
 			$this->skipWhitespaces($tokenizer);
-			list($value,,$type) = $tokenizer->currentToken();
+			[$value,,$type] = $tokenizer->currentToken();
 			if ($value === ',') {
 				throw new \LogicException("Expected value, given '$value'.");
 			}
@@ -39,7 +47,7 @@ class Macros extends Latte\Macros\MacroSet {
 			$args[] = trim($value, "'\"");
 			$tokenizer->nextToken();
 			$this->skipWhitespaces($tokenizer);
-			list($value,,$type) = $tokenizer->currentToken();
+			[$value,,$type] = $tokenizer->currentToken();
 			if ($value === ',') {
 				$tokenizer->nextToken();
 			}
@@ -58,7 +66,7 @@ class Macros extends Latte\Macros\MacroSet {
 		while ($token = $tokenizer->nextToken()) {
 			$this->skipWhitespaces($tokenizer);
 
-			list($key,,$type) = $tokenizer->currentToken();
+			[$key,,$type] = $tokenizer->currentToken();
 
 			$aliases[$key] = [];
 			if ($type !== $tokenizer::T_SYMBOL) {
@@ -71,13 +79,13 @@ class Macros extends Latte\Macros\MacroSet {
 				break;
 			}
 			$this->skipWhitespaces($tokenizer);
-			list($value,,$type) = $tokenizer->nextToken();
+			[$value,,$type] = $tokenizer->nextToken();
 			if ($value === '(') {
 				$aliases[$key] = $this->parseArguments($tokenizer);
 				if (!$tokenizer->isNext()) {
 					break;
 				}
-				list($value,,$type) = $tokenizer->nextToken();
+				[$value,,$type] = $tokenizer->nextToken();
 			}
 			if ($value !== ',') {
 				throw new \LogicException("Next alias must continue with dash, given '$value'.");

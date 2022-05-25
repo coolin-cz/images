@@ -108,8 +108,13 @@ class ImagesExtension extends Nette\DI\CompilerExtension {
 		/** @var Nette\DI\ServiceDefinition $def */
 		$def = DIHelper::fixFactoryDefinition($def);
 
-		$def->addSetup(Macros::class . '::install(?->getCompiler())', ['@self'])
-			->addSetup('addProvider', ['imageStorageFacade', $builder->getDefinition($this->prefix('template.facade'))]);
+		$macro = $builder->addDefinition($this->prefix('macros'))
+			->setFactory(Macros::class)
+			->setAutowired(false);
+
+		$def->addSetup('addProvider', ['imageStorageFacade', $builder->getDefinition($this->prefix('template.facade'))])
+			->addSetup('?->addExtension(?)',['@self', $macro]);
+			//->addSetup(Macros::class . '::install(?->getCompiler())', ['@self']);
 
 		// doctrine registration
 		if ($config->registerType) {
