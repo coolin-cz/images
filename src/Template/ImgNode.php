@@ -28,4 +28,11 @@ class ImgNode extends \Latte\Compiler\Nodes\StatementNode{
 			$this->asset
 		);
 	}
+
+	public function &getIterator(): \Generator{
+		//WTF???
+		if(false){
+			yield;
+		}
+	}
 }
