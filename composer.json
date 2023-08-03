@@ -13,9 +13,8 @@
 		"php": ">=8.0",
 		"latte/latte": "^3.0",
 		"nette/http": "^3.0",
-		"nette/utils": "^3.0",
-		"tracy/tracy": "^2.6",
-		"nette/finder": "^2.5"
+		"nette/utils": "^4.0",
+		"tracy/tracy": "^2.6"
 	},
 	"require-dev": {
 		"nette/di": "^3.0",
