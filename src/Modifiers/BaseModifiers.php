@@ -3,6 +3,7 @@
 namespace WebChemistry\Images\Modifiers;
 
 use Nette\Utils\Image;
+use Nette\Utils\ImageColor;
 use WebChemistry\Images\ImageStorageException;
 use WebChemistry\Images\Modifiers\Params\ModifierParam;
 use WebChemistry\Images\Modifiers\Params\ResourceModifierParam;
@@ -58,13 +59,13 @@ class BaseModifiers implements ILoader {
 
 			if (isset($exif['Orientation']) && $exif['Orientation']) {
 				if (in_array($exif['Orientation'], [3, 4])) {
-					$image->rotate(180, 0);
+					$image->rotate(180, ImageColor::rgb(0, 0, 0));
 
 				} else if (in_array($exif['Orientation'], [5, 6])) {
-					$image->rotate(-90, 0);
+					$image->rotate(-90, ImageColor::rgb(0, 0, 0));
 
 				} else if (in_array($exif['Orientation'], [7, 8])) {
-					$image->rotate(90, 0);
+					$image->rotate(90, ImageColor::rgb(0, 0, 0));
 				}
 
 				if (in_array($exif['Orientation'], [2, 4, 5, 7])) {
